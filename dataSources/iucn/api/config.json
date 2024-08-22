@@ -1,0 +1,13 @@
+{
+    "retrieveType": "script",
+    "download": {
+        "path": "sourceProcessing/iucn.py",
+        "function": "retrieve",
+        "args": [
+            "./apiKey.txt",
+            "{OUTPATH}"
+        ],
+        "output": "iucn.csv"
+    },
+    "conversion": {}
+}
