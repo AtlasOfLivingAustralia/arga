@@ -22,24 +22,24 @@ def retrieve(apiKeyPath: Path, outputFilePath: Path):
     version = list(response.json().values())[0]
     print(f"Version: {version}")
     
-    def getGlobalAssessmentIDs(page: int) -> list[int]:
-        for _ in range(5):
-            response = session.get(f"{baseURL}/scopes/1?page={page}&latest=true", headers=headers)
-            try:
-                data: dict = response.json()
-                break
-            except requests.exceptions.JSONDecodeError:
-                time.sleep(1)
-
-        return [assessment["assessment_id"] for assessment in data["assessments"]]
-
     writer = BigFileWriter(outputFilePath)
     writer.populateFromFolder(writer.subfileDir)
     onPage = len(writer.writtenFiles) + 1
 
     running = True
     while running:
-        assessmentIDs = getGlobalAssessmentIDs(onPage)
+        for _ in range(5):
+            response = session.get(f"{baseURL}/scopes/1?page={onPage}&latest=true", headers=headers)
+            try:
+                data: dict = response.json()
+                assessmentIDs = [assessment["assessment_id"] for assessment in data["assessments"]]
+                break
+            except requests.exceptions.JSONDecodeError:
+                session = requests.Session()
+        else:
+            print("Failed")
+            return
+
         if len(assessmentIDs) < 100 or not assessmentIDs:
             running = False
 
