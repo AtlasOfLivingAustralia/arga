@@ -2,6 +2,7 @@ import requests
 from pathlib import Path
 import json
 import pandas as pd
+import time
 from lib.tools.bigFileWriter import BigFileWriter
 
 def retrieve(apiKeyPath: Path, outputFilePath: Path):
@@ -22,8 +23,14 @@ def retrieve(apiKeyPath: Path, outputFilePath: Path):
     print(f"Version: {version}")
     
     def getGlobalAssessmentIDs(page: int) -> list[int]:
-        response = session.get(f"{baseURL}/scopes/1?page={page}&latest=true", headers=headers)
-        data: dict = response.json()
+        for _ in range(5):
+            response = session.get(f"{baseURL}/scopes/1?page={page}&latest=true", headers=headers)
+            try:
+                data: dict = response.json()
+                break
+            except requests.exceptions.JSONDecodeError:
+                time.sleep(1)
+
         return [assessment["assessment_id"] for assessment in data["assessments"]]
 
     writer = BigFileWriter(outputFilePath)
