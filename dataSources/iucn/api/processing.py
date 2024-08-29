@@ -1,8 +1,6 @@
 import requests
 from pathlib import Path
-import json
 import pandas as pd
-import time
 from lib.tools.bigFileWriter import BigFileWriter
 
 def retrieve(apiKeyPath: Path, outputFilePath: Path):
@@ -35,6 +33,7 @@ def retrieve(apiKeyPath: Path, outputFilePath: Path):
                 assessmentIDs = [assessment["assessment_id"] for assessment in data["assessments"]]
                 break
             except requests.exceptions.JSONDecodeError:
+                print(response.text)
                 session = requests.Session()
         else:
             print("Failed")

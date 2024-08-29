@@ -1,7 +1,7 @@
 {
     "retrieveType": "script",
     "download": {
-        "path": "sourceProcessing/iucn.py",
+        "path": "./processing.py",
         "function": "retrieve",
         "args": [
             "./apiKey.txt",
