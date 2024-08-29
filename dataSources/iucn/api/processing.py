@@ -2,6 +2,7 @@ import requests
 from pathlib import Path
 import pandas as pd
 from lib.tools.bigFileWriter import BigFileWriter
+import time
 
 def retrieve(apiKeyPath: Path, outputFilePath: Path):
     with open(apiKeyPath) as fp:
@@ -26,17 +27,17 @@ def retrieve(apiKeyPath: Path, outputFilePath: Path):
 
     running = True
     while running:
-        for _ in range(5):
+        for _ in range(6):
             response = session.get(f"{baseURL}/scopes/1?page={onPage}&latest=true", headers=headers)
-            try:
-                data: dict = response.json()
-                assessmentIDs = [assessment["assessment_id"] for assessment in data["assessments"]]
-                break
-            except requests.exceptions.JSONDecodeError:
-                print(response.text)
-                session = requests.Session()
+            if response.text.startswith("Retry later"):
+                time.sleep(5)
+                continue
+
+            data: dict = response.json()
+            assessmentIDs = [assessment["assessment_id"] for assessment in data["assessments"]]
+            break
         else:
-            print("Failed")
+            print("Failed\n\n")
             return
 
         if len(assessmentIDs) < 100 or not assessmentIDs:
