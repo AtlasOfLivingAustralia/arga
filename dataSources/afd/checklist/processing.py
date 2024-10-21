@@ -216,7 +216,7 @@ def enrich(filePath: Path, outputFilePath: Path) -> None:
         enrichmentDF = pd.read_csv(enrichmentPath, dtype=object)
         df = df.merge(enrichmentDF, "left", ["taxon_id", rank.lower()])
 
-    df.to_csv(outputFilePath)
+    df.to_csv(outputFilePath, index=False)
 
 def _parseContent(content: str, taxonID: str, rank: str) -> list[dict]:
     soup = BeautifulSoup(content, "html.parser")

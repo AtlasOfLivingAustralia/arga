@@ -223,6 +223,7 @@ class BigFileWriter:
             chunkIterator = file.readChunks(chunkSize)
             if chunkIterator is not None:
                 for chunk in chunkIterator:
+                    chunk = chunk.reindex(self.globalColumns, axis=1, fill_value="")
                     chunk.to_csv(self.outputFile, mode="a", sep=delim, index=False, header=False)
 
             if removeOld:
