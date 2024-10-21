@@ -82,19 +82,8 @@ def cleanup(filePath: Path, outputFilePath: Path) -> None:
     df = df.drop([
         "CAVS_CODE",
         "CAAB_CODE",
-        "PUB_PUB_AUTHOR",
-        "PUB_PUB_YEAR",
-        "PUB_PUB_TITLE",
-        "PUB_PUB_PAGES",
-        "PUB_PUB_PARENT_BOOK_TITLE",
-        "PUB_PUB_PARENT_JOURNAL_TITLE",
-        "PUB_PUB_PARENT_ARTICLE_TITLE",
-        "PUB_PUB_PUBLICATION_DATE",
-        "PUB_PUB_PUBLISHER",
         "PUB_PUB_FORMATTED",
         "PUB_PUB_QUALIFICATION",
-        "PUB_PUB_TYPE",
-        "PUBLICATION_GUID",
         "PUBLICATION_LAST_UPDATE",
         "PARENT_PUBLICATION_GUID"
     ], axis=1)
@@ -105,7 +94,15 @@ def cleanup(filePath: Path, outputFilePath: Path) -> None:
         "NAME_GUID": "name_id",
         "TAXON_GUID": "taxon_id",
         "TAXON_LAST_UPDATE": "updated_at",
-        "PARENT_TAXON_GUID": "parent_taxon_id"
+        "PARENT_TAXON_GUID": "parent_taxon_id",
+        "PUB_PUB_AUTHOR": "publication_author",
+        "PUB_PUB_YEAR": "publication_year",
+        "PUB_PUB_TITLE": "publication_title",
+        "PUB_PUB_PAGES": "publication_pages",
+        "PUB_PUB_PUBLICATION_DATE": "publication_date",
+        "PUB_PUB_PUBLISHER": "publisher",
+        "PUB_PUB_TYPE": "publication_type",
+        "PUBLICATION_GUID": "publication_id"
     })
 
     df = df.rename(columns={column: column.lower() for column in df.columns})
@@ -148,6 +145,13 @@ def cleanup(filePath: Path, outputFilePath: Path) -> None:
     df["authorship"] = df.apply(lambda row: f"{row['author']}, {row['year']}" if row["author"] not in ("", "NaN", "nan") else "", axis=1)
     df["scientific_name_authorship"] = df.apply(lambda row: f"({row['authorship']})" if row['orig_combination'] == 'N' and row["authorship"] not in ("", "NaN", "nan") else row["authorship"], axis=1)
     
+    df["published_media_title"] = df["PUB_PUB_PARENT_BOOK_TITLE"] + df["PUB_PUB_PARENT_JOURNAL_TITLE"] + df["PUB_PUB_PARENT_ARTICLE_TITLE"]
+    df = df.drop([
+        "PUB_PUB_PARENT_BOOK_TITLE",
+        "PUB_PUB_PARENT_JOURNAL_TITLE",
+        "PUB_PUB_PARENT_ARTICLE_TITLE"
+    ], axis=1)
+
     df.to_csv(outputFilePath, index=False)
 
 def addParents(filePath: Path, outputFilePath: Path) -> None:
@@ -285,7 +289,7 @@ def _parseContent(content: str, taxonID: str, rank: str) -> list[dict]:
         for typeData in synonymData.find_all("div"):
             data[typeData.find("h5").text.lower().replace(" ", "_")[:-1]] = synonymData.find("span").text
 
-        record = {"taxon_id": taxonID, rank: synonymTitle.find("strong").text.split()[-1]} | data
+        record = {"taxon_id": taxonID, rank: synonymTitle.find("strong").text} | data
         records.append(record | distributionData | descriptorData)
 
     return records
