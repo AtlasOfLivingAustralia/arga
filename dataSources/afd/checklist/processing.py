@@ -105,6 +105,13 @@ def cleanup(filePath: Path, outputFilePath: Path) -> None:
         "PUBLICATION_GUID": "publication_id"
     })
 
+    df["published_media_title"] = df["PUB_PUB_PARENT_BOOK_TITLE"] + df["PUB_PUB_PARENT_JOURNAL_TITLE"] + df["PUB_PUB_PARENT_ARTICLE_TITLE"]
+    df = df.drop([
+        "PUB_PUB_PARENT_BOOK_TITLE",
+        "PUB_PUB_PARENT_JOURNAL_TITLE",
+        "PUB_PUB_PARENT_ARTICLE_TITLE"
+    ], axis=1)
+
     df = df.rename(columns={column: column.lower() for column in df.columns})
     df = df.rename(columns={"qualification": "notes"})
     df = df[df["scientific_name"] != "Unplaced Synonym(s)"]
@@ -144,13 +151,6 @@ def cleanup(filePath: Path, outputFilePath: Path) -> None:
     df["canonical_name"] = df.apply(lambda row: f"{row['canonical_genus']} {row['species']}" if row["taxon_rank"] == "Species" else f"{row['canonical_genus']} {row['species']} {row['subspecies']}" if row["taxon_rank"] == "subspecies" else row["names_various"], axis=1)
     df["authorship"] = df.apply(lambda row: f"{row['author']}, {row['year']}" if row["author"] not in ("", "NaN", "nan") else "", axis=1)
     df["scientific_name_authorship"] = df.apply(lambda row: f"({row['authorship']})" if row['orig_combination'] == 'N' and row["authorship"] not in ("", "NaN", "nan") else row["authorship"], axis=1)
-    
-    df["published_media_title"] = df["PUB_PUB_PARENT_BOOK_TITLE"] + df["PUB_PUB_PARENT_JOURNAL_TITLE"] + df["PUB_PUB_PARENT_ARTICLE_TITLE"]
-    df = df.drop([
-        "PUB_PUB_PARENT_BOOK_TITLE",
-        "PUB_PUB_PARENT_JOURNAL_TITLE",
-        "PUB_PUB_PARENT_ARTICLE_TITLE"
-    ], axis=1)
 
     df.to_csv(outputFilePath, index=False)
 
