@@ -191,34 +191,33 @@ def enrich(filePath: Path, outputFilePath: Path) -> None:
         subDF = df[df["taxon_rank"] == rank]
 
         enrichmentPath = outputFilePath.parent / f"{rank}.csv"
-        if enrichmentPath.exists():
-            continue
+        if not enrichmentPath.exists():
+            writer = BigFileWriter(enrichmentPath, rank, subfileType=Format.CSV)
+            writer.populateFromFolder(writer.subfileDir)
+            subfileNames = [file.fileName for file in writer.writtenFiles]
 
-        writer = BigFileWriter(enrichmentPath, rank, subfileType=Format.CSV)
-        writer.populateFromFolder(writer.subfileDir)
-        subfileNames = [file.fileName for file in writer.writtenFiles]
-
-        uniqueSeries = subDF["taxon_id"].unique()
-        uniqueSeries = [item for item in uniqueSeries if item not in subfileNames]
-        
-        bar = SteppableProgressBar(50, len(uniqueSeries), f"{rank} Progress")
-        for taxonID in uniqueSeries:
-            bar.update()
-
-            response = session.get(f"https://biodiversity.org.au/afd/taxa/{taxonID}/complete")
-            try:
-                records = _parseContent(response.text, taxonID, rank.lower())
-            except:
-                print(taxonID)
-                print(traceback.format_exc())
-                return
+            uniqueSeries = subDF["taxon_id"].unique()
+            uniqueSeries = [item for item in uniqueSeries if item not in subfileNames]
             
-            recordDF = pd.DataFrame.from_records(records)
-            writer.writeDF(recordDF, taxonID)
+            bar = SteppableProgressBar(50, len(uniqueSeries), f"{rank} Progress")
+            for taxonID in uniqueSeries:
+                bar.update()
 
-        writer.oneFile(False)
+                response = session.get(f"https://biodiversity.org.au/afd/taxa/{taxonID}/complete")
+                try:
+                    records = _parseContent(response.text, taxonID, rank.lower())
+                except:
+                    print(taxonID)
+                    print(traceback.format_exc())
+                    return
+                
+                recordDF = pd.DataFrame.from_records(records)
+                writer.writeDF(recordDF, taxonID)
+
+            writer.oneFile(False)
+
         enrichmentDF = pd.read_csv(enrichmentPath, dtype=object)
-        df = df.merge(enrichmentDF, "left", ["taxon_id", rank.lower()])
+        df = df.merge(enrichmentDF, "left", left_on=["taxon_id", "canonical_name"], right_on=["taxon_id", rank.lower()])
 
     df.to_csv(outputFilePath, index=False)
 
