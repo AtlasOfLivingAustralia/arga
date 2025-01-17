@@ -1,0 +1,9 @@
+data
+logs
+
+.devenv
+.ropeproject
+
+dataSources/**/data
+dataSources/**/examples
+dataSources/**/crawlerProgress

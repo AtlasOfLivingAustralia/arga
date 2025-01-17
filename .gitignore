@@ -31,11 +31,11 @@ logs
 env
 
 # Data sources files
-datasources/**/data
-datasources/**/examples
-datasources/**/crawlerProgress
-datasources/**/*.json
-!datasources/**/config.json
+dataSources/**/data
+dataSources/**/examples
+dataSources/**/crawlerProgress
+dataSources/**/*.json
+!dataSources/**/config.json
 
 # Data Files #
 *.tsv
@@ -59,3 +59,6 @@ datasources/**/*.json
 # Update bot
 src/tools/updateBot/*.json
 src/tools/updateBot/*.txt
+
+# devenv
+.devenv
