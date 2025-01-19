@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 from lib.tools.bigFileWriter import BigFileWriter
 import time
+import lib.dataframeFuncs as dff
 
 def retrieve(apiKeyPath: Path, outputFilePath: Path):
     with open(apiKeyPath) as fp:
@@ -78,6 +79,8 @@ def retrieve(apiKeyPath: Path, outputFilePath: Path):
             records.append(data | taxonomy | supplementaryInfo)
 
         df = pd.DataFrame.from_records(records)
+        df = dff.removeSpaces(df)
+        
         writer.writeDF(df)
         onPage += 1
 
